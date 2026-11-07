@@ -2,13 +2,38 @@
   {
     "name": "week",
     "title": "This week",
-    "subtitle": "Aviation Safety for Claude Code: what needs attention, rendered by npm run view",
+    "subtitle": "What needs a person: regulator notices, intolerable risks, reports waiting, late actions, audits and training",
     "sections": [
-      {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
-      }
+      { "title": "Needs attention", "note": "The same list as /attention. Regulator notices first, then risk, then everything else.", "sql": "select item, ref, detail from v_attention order by rank, item, ref" },
+      { "title": "Regulator notices due or overdue", "sql": "select ref, authority, kind, due_local as due, standing, rule from v_notifications where standing in ('overdue', 'due') order by due_at" },
+      { "title": "Reports in the last 14 days", "sql": "select ref, kind, occurred_local as occurred, base, aircraft, title, reporter, class, status from v_reports where reported_at > now() - interval '14 days' order by occurred_at desc" }
+    ]
+  },
+  {
+    "name": "hazard-register",
+    "title": "Hazard register",
+    "subtitle": "Every open hazard, highest risk first, with its first and latest rating and the actions against it",
+    "sections": [
+      { "title": "Open hazards", "note": "Risk is likelihood (1 to 5) and severity (A to E) on the ICAO matrix.", "sql": "select ref, title, area, owner, first_risk, risk, band, open_actions, reports, last_reviewed, review_due from v_hazards where status = 'open' order by band_rank, risk, ref" }
+    ]
+  },
+  {
+    "name": "actions",
+    "title": "Corrective actions",
+    "subtitle": "Open actions by due date, and finished actions waiting for someone to check they worked",
+    "sections": [
+      { "title": "Open", "sql": "select ref, source, description, owner, due_on, days_overdue from v_actions where status = 'open' order by due_on" },
+      { "title": "Done, not yet verified", "sql": "select ref, source, description, owner, done_on, days_unverified from v_actions where status = 'done' order by done_on" }
+    ]
+  },
+  {
+    "name": "assurance",
+    "title": "Safety assurance",
+    "subtitle": "Safety performance indicators over the last three full months, audits and training",
+    "sections": [
+      { "title": "Safety performance indicators", "sql": "select code, name, reports, hours, rate_per_1000, target_per_1000, alert_per_1000 from v_spis order by code" },
+      { "title": "Audits", "sql": "select au.ref, au.title, au.scheduled_on, au.done_on, (select count(*)::int from findings f where f.audit_id = au.id) as findings from audits au order by au.scheduled_on" },
+      { "title": "Training not current", "sql": "select name, role, base, course, expires_on, standing from v_training where standing <> 'current' order by days_left nulls first" }
     ]
   }
 ]

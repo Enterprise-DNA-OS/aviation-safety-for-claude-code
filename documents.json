@@ -1,11 +1,49 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "occurrence-report",
+    "title": "Occurrence report",
+    "for_each": "select id, ref from reports where kind = 'occurrence' and class in ('incident', 'serious', 'accident') order by ref",
+    "file": "ref",
+    "sections": [
+      { "title": "The occurrence", "layout": "record", "sql": "select ref, title, occurred_local as occurred, base, country, aircraft, class, category, reporter, status, description from v_reports where id = $1" },
+      { "title": "Notices owed to the regulator", "sql": "select authority, kind, due_local as due, standing, sent_local as sent, reference, rule from v_notifications where report_id = $1 order by due_at" },
+      { "title": "Investigation", "layout": "record", "sql": "select investigator, investigation_due, investigated_on, root_cause, outcome from v_reports where id = $1" },
+      { "title": "Corrective actions", "sql": "select ref, description, owner, due_on, status, effective from v_actions where report_id = $1 order by ref" }
+    ]
+  },
+  {
+    "name": "hazard-assessment",
+    "title": "Hazard and risk assessment",
+    "for_each": "select id, ref from hazards where status = 'open' order by ref",
+    "file": "ref",
+    "sections": [
+      { "title": "Hazard", "layout": "record", "sql": "select h.ref, h.title, h.area, v.owner, v.change, h.description, v.risk, v.band, v.last_reviewed, v.review_due from hazards h join v_hazards v on v.id = h.id where h.id = $1" },
+      { "title": "Assessments", "note": "Likelihood 1 (extremely improbable) to 5 (frequent); severity A (catastrophic) to E (negligible).", "sql": "select ra.assessed_on, ra.likelihood::text || ra.severity as risk, risk_band(ra.likelihood, ra.severity) as band, ra.controls from risk_assessments ra where ra.hazard_id = $1 order by ra.assessed_on" },
+      { "title": "Reports linked", "sql": "select ref, occurred_local as occurred, title, class, status from v_reports where hazard_id = $1 order by occurred_at" },
+      { "title": "Actions", "sql": "select ref, description, owner, due_on, status, effective from v_actions where hazard_id = $1 order by ref" }
+    ]
+  },
+  {
+    "name": "audit-report",
+    "title": "Audit report",
+    "for_each": "select id, ref from audits where done_on is not null order by ref",
+    "file": "ref",
+    "sections": [
+      { "title": "Audit", "layout": "record", "sql": "select au.ref, au.title, au.area, b.name as base, p.name as auditor, au.done_on, au.summary from audits au left join bases b on b.id = au.base_id left join people p on p.id = au.auditor_id where au.id = $1" },
+      { "title": "Findings and actions", "sql": "select f.ref, f.level, f.description, (select string_agg(a.ref || ' ' || a.status || ' due ' || a.due_on, '; ') from actions a where a.finding_id = f.id) as actions from findings f where f.audit_id = $1 order by f.ref" }
+    ]
+  },
+  {
+    "name": "safety-meeting-pack",
+    "title": "Safety meeting pack",
+    "for_each": "select '00000000-0000-0000-0000-000000000000'::uuid as id, to_char(current_date, 'YYYY-MM-DD') as name",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Regulator notices", "sql": "select ref, authority, kind, due_local as due, standing, sent_local as sent from v_notifications where $1::uuid is not null and (standing in ('overdue', 'due') or sent_at > now() - interval '30 days') order by due_at" },
+      { "title": "Highest risks", "sql": "select ref, title, risk, band, open_actions, owner from v_hazards where $1::uuid is not null and status = 'open' and band in ('intolerable', 'tolerable') order by band_rank, risk" },
+      { "title": "Reports in the last 30 days", "sql": "select ref, kind, occurred_local as occurred, base, title, class, status from v_reports where $1::uuid is not null and reported_at > now() - interval '30 days' order by occurred_at" },
+      { "title": "Actions late or waiting to be verified", "sql": "select ref, description, owner, due_on, status, days_overdue, days_unverified from v_actions where $1::uuid is not null and ((status = 'open' and due_on < current_date) or status = 'done') order by due_on" },
+      { "title": "Safety performance indicators", "sql": "select code, name, reports, rate_per_1000, target_per_1000, alert_per_1000 from v_spis where $1::uuid is not null order by code" }
     ]
   }
 ]

@@ -1,0 +1,6 @@
+# Why SMS Pro
+
+- **What it costs.** SMS Pro publishes monthly prices by the number of employees in the company, not the number of users. The Enterprise plan is $2,499 a month for 1 to 30 employees and $5,999 a month for 51 to 100; Safety / Quality Assurance is $799 a month for 10 to 30 employees. https://www.asms-pro.com/Pricing-2018-25.aspx, checked 7 November 2026. The page gives its single-user product in USD; the tier prices carry a dollar sign only.
+- **What it holds.** Hazard and occurrence reports, a risk register, investigations, corrective actions, audits, safety performance indicators, management of change and training records: the safety management system an air operator must run under Civil Aviation Rules Part 100 in New Zealand and CASR Part 119 in Australia.
+- **Why it is data-shaped.** Under the screens are ordinary records: reports, notices, hazards, assessments, actions, audits, findings, indicators, changes, training. The hard parts are the rules (which notice the CAA or ATSB is owed and by when, the risk matrix, who may verify an action), and those are database views.
+- **Who pays for it.** Air operators, helicopter and scenic flight companies, flight schools and maintenance organisations, from 10 staff to a few hundred. The price follows headcount, so a growing operator pays more each year for the same records.

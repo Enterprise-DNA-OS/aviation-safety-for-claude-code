@@ -1,0 +1,3 @@
+Hazard ID,Hazard,Description,Area,Likelihood,Severity,Owner,Controls
+HZ-21,Cruise ship wake at the Milford float landing,Wake from cruise ships upsets the Caravan on the water.,Flight Ops,Occasional,Major,Tom Gillies,Cruise ship schedule in the daily brief
+HZ-22,Lithium batteries in passenger bags,Spare batteries packed in checked bags on charter flights.,Passengers,3,4,Lucy Fraser,Dangerous goods question at check-in
